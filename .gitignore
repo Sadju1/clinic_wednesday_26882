@@ -1,0 +1,10 @@
+clinic/target/
+clinic/.idea/
+clinic/.vscode/
+clinic/*.iml
+.vscode/
+__MACOSX/
+*.DS_Store
+
+Clinic-JPA-JPQL-Quiz-Requirements.pdf
+WhatsApp Image 2026-10-01 at 08.46.57.jpeg
