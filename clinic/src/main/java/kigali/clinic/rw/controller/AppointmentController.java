@@ -40,14 +40,13 @@ public class AppointmentController {
 
         String message = appointmentServ.saveAppointment(appointment);
 
-        if (message.equals("Doctor is already booked on that date")) {
-            return new ResponseEntity<>(
-                    message,
-                    HttpStatus.CONFLICT
-            );
+        if (message.equals("Appointment saved successfully")) {
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        } else if (message.equals("Doctor is already booked on that date")) {
+            return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        } else {
+            return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
         }
-
-        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
     @GetMapping("/all")
@@ -226,6 +225,45 @@ public class AppointmentController {
                 appointmentServ.getAllAppointmentsPaged(pageable),
                 HttpStatus.OK
         );
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(
+            @PathVariable UUID id,
+            @RequestParam AppointmentStatus status) {
+
+        String message = appointmentServ.updateStatus(id, status);
+
+        if (message.equals("Appointment status updated successfully")) {
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        } else if (message.equals(
+                "The appointment with that id does not exist")) {
+            return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+        } else {
+            return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PatchMapping("/{id}/reschedule")
+    public ResponseEntity<?> rescheduleAppointment(
+            @PathVariable UUID id,
+            @RequestParam String newDate) {
+
+        LocalDate parsedDate = LocalDate.parse(newDate);
+
+        String message =
+                appointmentServ.rescheduleAppointment(id, parsedDate);
+
+        if (message.equals("Appointment rescheduled successfully")) {
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        } else if (message.equals(
+                "The appointment with that id does not exist")) {
+            return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+        } else if (message.equals("Doctor is already booked on that date")) {
+            return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        } else {
+            return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PatchMapping("/cancel-day")
