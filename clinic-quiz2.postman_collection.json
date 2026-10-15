@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Kigali Clinic - Quiz 2 Part D (Agenda and Reports)",
+    "name": "Kigali Clinic - Quiz 2 Part D and Bonus",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,7 +13,11 @@
     { "key": "ssNumberWithUpcoming", "value": "2199000000000001", "description": "Alice Uwase - has exactly one upcoming CONFIRMED appointment (2026-10-20)" },
     { "key": "ssNumberNoUpcoming", "value": "1199800012345678", "description": "Eric Niyonzima - has no appointment today-or-later with status SCHEDULED/CONFIRMED" },
     { "key": "nonexistentSsNumber", "value": "0000000000000000" },
-    { "key": "searchName", "value": "gis", "description": "PDF's own example - should find Mugisha" }
+    { "key": "searchName", "value": "gis", "description": "PDF's own example - should find Mugisha" },
+    { "key": "workloadStart", "value": "2026-10-01", "description": "Returns only Patrick Habimana with 1 COMPLETED appointment (seed data)" },
+    { "key": "workloadEnd", "value": "2026-10-31" },
+    { "key": "workloadWideStart", "value": "2026-09-01", "description": "Wide range showing all 3 doctors with COMPLETED appointments, sorted desc: Patrick=2, Sarah=1, John=1" },
+    { "key": "workloadWideEnd", "value": "2026-11-30" }
   ],
   "item": [
     {
@@ -146,6 +150,77 @@
               "path": ["api", "dashboard", "summary"]
             },
             "description": "Expect a single JSON object with keys in this order: patients, doctors, freeOffices, appointmentsToday, scheduled, prescriptions."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bonus 1 - Most prescribed medicines",
+      "item": [
+        {
+          "name": "Bonus1 - Top medicines (expect 200; currently empty, 0 prescriptions in DB)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/stats/top-medicines",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "prescriptions", "stats", "top-medicines"]
+            },
+            "description": "As of the last verification, the prescription table has 0 rows, so this honestly returns []. Create prescriptions via C1 (POST /api/prescriptions/save) against COMPLETED appointments to see non-empty, most-prescribed-first results."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bonus 2 - Doctor workload",
+      "item": [
+        {
+          "name": "Bonus2 - Workload for October 2026 (expect 200, Patrick Habimana=1)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/workload?start={{workloadStart}}&end={{workloadEnd}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "workload"],
+              "query": [
+                { "key": "start", "value": "{{workloadStart}}" },
+                { "key": "end", "value": "{{workloadEnd}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bonus2 - Workload for Sep-Nov 2026 (expect 200, 3 doctors sorted desc)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/workload?start={{workloadWideStart}}&end={{workloadWideEnd}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "workload"],
+              "query": [
+                { "key": "start", "value": "{{workloadWideStart}}" },
+                { "key": "end", "value": "{{workloadWideEnd}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bonus2 - Workload with no qualifying appointments (expect 200, empty list)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/workload?start=2026-01-01&end=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "workload"],
+              "query": [
+                { "key": "start", "value": "2026-01-01" },
+                { "key": "end", "value": "2026-01-31" }
+              ]
+            }
           },
           "response": []
         }

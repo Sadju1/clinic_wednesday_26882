@@ -207,4 +207,18 @@ public class DoctorController {
                 HttpStatus.OK
         );
     }
+
+    @GetMapping("/workload")
+    public ResponseEntity<List<Object[]>> getDoctorWorkload(
+            @RequestParam String start,
+            @RequestParam String end) {
+
+        LocalDate startDate = LocalDate.parse(start);
+        LocalDate endDate = LocalDate.parse(end);
+
+        return new ResponseEntity<>(
+                doctorServ.getDoctorWorkload(startDate, endDate),
+                HttpStatus.OK
+        );
+    }
 }

@@ -185,4 +185,16 @@ public class DoctorService {
     public List<Doctor> searchDoctorsByName(String name) {
         return doctorRepo.searchDoctorsByName(name);
     }
+
+    public List<Object[]> getDoctorWorkload(LocalDate start, LocalDate end) {
+
+        Date startDate = Date.valueOf(start);
+        Date endDate = Date.valueOf(end);
+
+        return appointmentRepo.findDoctorWorkload(
+                AppointmentStatus.COMPLETED,
+                startDate,
+                endDate
+        );
+    }
 }
