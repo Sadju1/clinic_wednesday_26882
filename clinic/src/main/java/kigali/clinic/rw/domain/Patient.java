@@ -37,6 +37,9 @@ public class Patient {
     @Column (name="date_of_birth")
     private Date dateOfBirth;
 
+    @Column (name="ss_number")
+    private String ssNumber;
+
     @JsonIgnore
 @OneToMany(mappedBy = "patient")
 private List<Appointment> appointments = new ArrayList<>();
@@ -63,6 +66,14 @@ private List<Appointment> appointments = new ArrayList<>();
 
     public void setDateOfBirth(Date dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getSsNumber() {
+        return ssNumber;
+    }
+
+    public void setSsNumber(String ssNumber) {
+        this.ssNumber = ssNumber;
     }
 
     public List<Appointment> getAppointments() {

@@ -16,12 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 import kigali.clinic.rw.domain.Appointment;
 import kigali.clinic.rw.domain.AppointmentStatus;
 import kigali.clinic.rw.repository.AppointmentRepository;
+import kigali.clinic.rw.repository.PrescriptionRepository;
 
 @Service
 public class AppointmentService {
 
     @Autowired
     private AppointmentRepository appointmentRepo;
+
+    @Autowired
+    private PrescriptionRepository prescriptionRepo;
 
     public String saveAppointment(Appointment appointment) {
 
@@ -153,6 +157,10 @@ public class AppointmentService {
 
         if (existingAppointment == null) {
             return "Appointment not found";
+        }
+
+        if (prescriptionRepo.existsByAppointment_Id(id)) {
+            return "That appointment has prescriptions, delete them first";
         }
 
         appointmentRepo.delete(existingAppointment);

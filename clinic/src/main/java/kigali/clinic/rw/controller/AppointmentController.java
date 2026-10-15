@@ -98,9 +98,12 @@ public class AppointmentController {
 
         if (message.equals("Appointment deleted successfully")) {
             return new ResponseEntity<>(message, HttpStatus.OK);
+        } else if (message.equals(
+                "That appointment has prescriptions, delete them first")) {
+            return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        } else {
+            return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
         }
-
-        return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/doctor/{doctorId}/pending")

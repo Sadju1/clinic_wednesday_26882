@@ -43,6 +43,7 @@ public class PatientService {
         existingPatient.setFirstName(patient.getFirstName());
         existingPatient.setLastName(patient.getLastName());
         existingPatient.setDateOfBirth(patient.getDateOfBirth());
+        existingPatient.setSsNumber(patient.getSsNumber());
 
         patientRepo.save(existingPatient);
 
