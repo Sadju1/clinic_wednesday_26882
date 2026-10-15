@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import kigali.clinic.rw.domain.Doctor;
+import kigali.clinic.rw.domain.Office;
 import kigali.clinic.rw.domain.Specialization;
 import kigali.clinic.rw.repository.DoctorRepository;
+import kigali.clinic.rw.repository.OfficeRepository;
 import kigali.clinic.rw.repository.SpecializationRepository;
 
 @Service
@@ -19,6 +21,9 @@ public class DoctorService {
 
     @Autowired
     private SpecializationRepository specializationRepo;
+
+    @Autowired
+    private OfficeRepository officeRepo;
 
     public String saveDoctor(Doctor doctor) {
         doctorRepo.save(doctor);
@@ -70,27 +75,75 @@ public class DoctorService {
         Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
 
         if (doctor == null) {
-            return "Doctor not found";
+            return "The doctor with that id does not exist";
         }
 
         Specialization specialization =
                 specializationRepo.findById(specializationId).orElse(null);
 
         if (specialization == null) {
-            return "Specialization not found";
+            return "That specialization does not exist";
         }
 
-        if (!specialization.getDoctors().contains(doctor)) {
-            specialization.getDoctors().add(doctor);
+        if (doctor.getSpecializations().contains(specialization)) {
+            return "The doctor already has that specialization";
+        }
+
+        doctor.getSpecializations().add(specialization);
+        doctorRepo.save(doctor);
+
+        return "Specialization added to the doctor";
+    }
+
+    public String removeSpecialization(
+            UUID doctorId,
+            UUID specializationId) {
+
+        Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
+
+        if (doctor == null) {
+            return "The doctor with that id does not exist";
+        }
+
+        Specialization specialization =
+                specializationRepo.findById(specializationId).orElse(null);
+
+        if (specialization == null) {
+            return "That specialization does not exist";
         }
 
         if (!doctor.getSpecializations().contains(specialization)) {
-            doctor.getSpecializations().add(specialization);
+            return "The doctor does not have that specialization";
         }
 
-        specializationRepo.save(specialization);
+        doctor.getSpecializations().remove(specialization);
+        doctorRepo.save(doctor);
 
-        return "Specialization added to doctor successfully";
+        return "Specialization removed from the doctor";
+    }
+
+    public String changeOffice(UUID doctorId, int officeNumber) {
+
+        Doctor doctor = doctorRepo.findById(doctorId).orElse(null);
+
+        if (doctor == null) {
+            return "The doctor with that id does not exist";
+        }
+
+        Office office = officeRepo.findByOfficeNumber(officeNumber);
+
+        if (office == null) {
+            return "The office with that office number does not exist";
+        }
+
+        if (doctorRepo.existsByOfficeAndIdNot(office, doctorId)) {
+            return "That office is taken by other doctor";
+        }
+
+        doctor.setOffice(office);
+        doctorRepo.save(doctor);
+
+        return "Office changed successfully";
     }
 
     public List<Doctor> getDoctorsBySpecialization(String name) {

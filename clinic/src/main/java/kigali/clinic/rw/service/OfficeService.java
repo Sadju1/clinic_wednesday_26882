@@ -67,6 +67,11 @@ public class OfficeService {
         return "Office deleted successfully";
     }
 
+    public List<Office> getFreeOffices() {
+
+        return officeRepo.findFreeOffices();
+    }
+
     public Optional<Object[]> getBusiestOffice() {
 
         List<Object[]> results = officeRepo.findBusiestOffice();

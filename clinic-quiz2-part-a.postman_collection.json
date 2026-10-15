@@ -1,0 +1,274 @@
+{
+  "info": {
+    "name": "Kigali Clinic - Quiz 2 Part A (Doctors and Offices)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8082" },
+    { "key": "doctorId", "value": "8db447c2-3900-4b93-8578-70e861efc251", "description": "John Mugisha - has 1 specialization (Cardiology), no office" },
+    { "key": "doctorWithOfficeId", "value": "2380708c-c90c-47bc-98dd-b45e8e8c52f4", "description": "Sarah Keza - office 101, specializations Cardiology + Pediatrics" },
+    { "key": "otherDoctorId", "value": "f78c2cd1-27c7-455c-babb-1f5545cceb9d", "description": "Patrick Habimana - office 103" },
+    { "key": "specializationId", "value": "9286548e-a57d-4606-8219-a2df16e0e5ac", "description": "Pediatrics - not currently assigned to doctorId" },
+    { "key": "nonexistentId", "value": "00000000-0000-0000-0000-000000000000" },
+    { "key": "freeOfficeNumber", "value": "104", "description": "Unoccupied office per the Quiz 2 Step 0 seed data (PDF's own A4 example uses officeNumber=104); check GET /api/offices/free first and update if already taken" },
+    { "key": "occupiedOfficeNumber", "value": "103", "description": "Patrick Habimana's office" },
+    { "key": "currentOfficeNumber", "value": "101", "description": "Sarah Keza's current office" },
+    { "key": "nonexistentOfficeNumber", "value": "999" }
+  ],
+  "item": [
+    {
+      "name": "A1 - Add specialization to doctor",
+      "item": [
+        {
+          "name": "A1 - Add specialization (success, expect 200)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/specializations/{{specializationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorId}}", "specializations", "{{specializationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A1 - Add same specialization again (expect 409)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/specializations/{{specializationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorId}}", "specializations", "{{specializationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A1 - Nonexistent doctor (expect 404)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{nonexistentId}}/specializations/{{specializationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{nonexistentId}}", "specializations", "{{specializationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A1 - Nonexistent specialization (expect 404)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/specializations/{{nonexistentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorId}}", "specializations", "{{nonexistentId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A1 - Verify doctor keeps previous specializations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "A2 - Remove specialization from doctor",
+      "item": [
+        {
+          "name": "A2 - Remove specialization (success, expect 200)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/specializations/{{specializationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorId}}", "specializations", "{{specializationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 - Remove same specialization again (expect 409)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/specializations/{{specializationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorId}}", "specializations", "{{specializationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 - Nonexistent doctor (expect 404)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{nonexistentId}}/specializations/{{specializationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{nonexistentId}}", "specializations", "{{specializationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 - Nonexistent specialization (expect 404)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/specializations/{{nonexistentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorId}}", "specializations", "{{nonexistentId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 - Verify specialization still exists (not deleted)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/specializations/{{specializationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "specializations", "{{specializationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A2 - Verify other doctor-specialization links intact",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorWithOfficeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorWithOfficeId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "A3 - List free offices",
+      "item": [
+        {
+          "name": "A3 - Get free offices (expect 200, sorted ascending by officeNumber)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/offices/free",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "offices", "free"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "A4 - Move a doctor to another office",
+      "item": [
+        {
+          "name": "A4 - Nonexistent doctor (expect 404)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{nonexistentId}}/office?officeNumber={{freeOfficeNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{nonexistentId}}", "office"],
+              "query": [{ "key": "officeNumber", "value": "{{freeOfficeNumber}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 - Nonexistent office number (expect 404)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorWithOfficeId}}/office?officeNumber={{nonexistentOfficeNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorWithOfficeId}}", "office"],
+              "query": [{ "key": "officeNumber", "value": "{{nonexistentOfficeNumber}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 - Move to office occupied by another doctor (expect 409)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorWithOfficeId}}/office?officeNumber={{occupiedOfficeNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorWithOfficeId}}", "office"],
+              "query": [{ "key": "officeNumber", "value": "{{occupiedOfficeNumber}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 - Assign doctor's own current office (expect 200, not a false conflict)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorWithOfficeId}}/office?officeNumber={{currentOfficeNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorWithOfficeId}}", "office"],
+              "query": [{ "key": "officeNumber", "value": "{{currentOfficeNumber}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 - Move to a free office (expect 200)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorWithOfficeId}}/office?officeNumber={{freeOfficeNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorWithOfficeId}}", "office"],
+              "query": [{ "key": "officeNumber", "value": "{{freeOfficeNumber}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 - Verify old office is now free, new office is not",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/offices/free",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "offices", "free"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A4 - Move doctor back to original office (cleanup)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorWithOfficeId}}/office?officeNumber={{currentOfficeNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorWithOfficeId}}", "office"],
+              "query": [{ "key": "officeNumber", "value": "{{currentOfficeNumber}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

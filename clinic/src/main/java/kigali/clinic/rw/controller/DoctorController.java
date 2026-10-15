@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -94,7 +95,7 @@ public class DoctorController {
         );
     }
 
-    @PutMapping("/{doctorId}/specialization/{specializationId}")
+    @PutMapping("/{doctorId}/specializations/{specializationId}")
     public ResponseEntity<?> addSpecialization(
             @PathVariable UUID doctorId,
             @PathVariable UUID specializationId) {
@@ -105,19 +106,52 @@ public class DoctorController {
                         specializationId
                 );
 
-        if (message.equals(
-                "Specialization added to doctor successfully")) {
-
-            return new ResponseEntity<>(
-                    message,
-                    HttpStatus.OK
-            );
+        if (message.equals("Specialization added to the doctor")) {
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        } else if (message.equals(
+                "The doctor already has that specialization")) {
+            return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        } else {
+            return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
         }
+    }
 
-        return new ResponseEntity<>(
-                message,
-                HttpStatus.NOT_FOUND
-        );
+    @DeleteMapping("/{doctorId}/specializations/{specializationId}")
+    public ResponseEntity<?> removeSpecialization(
+            @PathVariable UUID doctorId,
+            @PathVariable UUID specializationId) {
+
+        String message =
+                doctorServ.removeSpecialization(
+                        doctorId,
+                        specializationId
+                );
+
+        if (message.equals("Specialization removed from the doctor")) {
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        } else if (message.equals(
+                "The doctor does not have that specialization")) {
+            return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        } else {
+            return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PatchMapping("/{doctorId}/office")
+    public ResponseEntity<?> changeOffice(
+            @PathVariable UUID doctorId,
+            @RequestParam int officeNumber) {
+
+        String message =
+                doctorServ.changeOffice(doctorId, officeNumber);
+
+        if (message.equals("Office changed successfully")) {
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        } else if (message.equals("That office is taken by other doctor")) {
+            return new ResponseEntity<>(message, HttpStatus.CONFLICT);
+        } else {
+            return new ResponseEntity<>(message, HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/by-specialization")

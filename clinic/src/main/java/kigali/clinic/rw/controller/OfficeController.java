@@ -89,6 +89,12 @@ public class OfficeController {
         return new ResponseEntity<>(returnedMessage, HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping(value = "/free")
+    public ResponseEntity<List<Office>> getFreeOffices() {
+
+        return new ResponseEntity<>(officeServ.getFreeOffices(), HttpStatus.OK);
+    }
+
     @GetMapping(value = "/busiest")
     public ResponseEntity<?> getBusiestOffice() {
 

@@ -9,9 +9,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import kigali.clinic.rw.domain.Doctor;
+import kigali.clinic.rw.domain.Office;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
+
+    boolean existsByOfficeAndIdNot(Office office, UUID id);
 
     @Query("""
         SELECT d
