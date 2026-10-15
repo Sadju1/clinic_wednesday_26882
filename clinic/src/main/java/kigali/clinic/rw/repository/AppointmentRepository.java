@@ -84,6 +84,22 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
             AppointmentStatus status
     );
 
+    List<Appointment> findByDoctor_IdAndAppointmentDateAndStatusNot(
+            UUID doctorId,
+            Date appointmentDate,
+            AppointmentStatus status
+    );
+
+    List<Appointment> findByPatient_SsNumberAndAppointmentDateGreaterThanEqualAndStatusInOrderByAppointmentDateAsc(
+            String ssNumber,
+            Date fromDate,
+            List<AppointmentStatus> statuses
+    );
+
+    long countByAppointmentDate(Date appointmentDate);
+
+    long countByStatus(AppointmentStatus status);
+
     @Modifying
     @Query("""
         UPDATE Appointment a

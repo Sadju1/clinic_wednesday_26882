@@ -1,5 +1,7 @@
 package kigali.clinic.rw.service;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -7,7 +9,10 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import kigali.clinic.rw.domain.Appointment;
+import kigali.clinic.rw.domain.AppointmentStatus;
 import kigali.clinic.rw.domain.Patient;
+import kigali.clinic.rw.repository.AppointmentRepository;
 import kigali.clinic.rw.repository.DoctorRepository;
 import kigali.clinic.rw.repository.PatientRepository;
 
@@ -19,6 +24,9 @@ public class PatientService {
 
     @Autowired
     private DoctorRepository doctorRepo;
+
+    @Autowired
+    private AppointmentRepository appointmentRepo;
 
     public String savePatient(Patient patient) {
         patientRepo.save(patient);
@@ -76,5 +84,28 @@ public class PatientService {
 
     public List<Patient> getFrequentPatients(int min) {
         return patientRepo.findFrequentPatients(min);
+    }
+
+    public Optional<List<Appointment>> getUpcomingAppointments(String ssNumber) {
+
+        if (!patientRepo.existsBySsNumber(ssNumber)) {
+            return Optional.empty();
+        }
+
+        Date today = Date.valueOf(LocalDate.now());
+
+        List<AppointmentStatus> statuses = List.of(
+                AppointmentStatus.SCHEDULED,
+                AppointmentStatus.CONFIRMED
+        );
+
+        return Optional.of(
+                appointmentRepo
+                        .findByPatient_SsNumberAndAppointmentDateGreaterThanEqualAndStatusInOrderByAppointmentDateAsc(
+                                ssNumber,
+                                today,
+                                statuses
+                        )
+        );
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import kigali.clinic.rw.domain.Appointment;
 import kigali.clinic.rw.domain.Patient;
 import kigali.clinic.rw.service.PatientService;
 
@@ -118,5 +119,22 @@ public class PatientController {
                 patientServ.getFrequentPatients(min),
                 HttpStatus.OK
         );
+    }
+
+    @GetMapping("/{ssNumber}/upcoming")
+    public ResponseEntity<?> getUpcomingAppointments(
+            @PathVariable String ssNumber) {
+
+        Optional<List<Appointment>> upcoming =
+                patientServ.getUpcomingAppointments(ssNumber);
+
+        if (upcoming.isEmpty()) {
+            return new ResponseEntity<>(
+                    "That patient with that ssnumber does not exist",
+                    HttpStatus.NOT_FOUND
+            );
+        }
+
+        return new ResponseEntity<>(upcoming.get(), HttpStatus.OK);
     }
 }

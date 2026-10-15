@@ -1,0 +1,155 @@
+{
+  "info": {
+    "name": "Kigali Clinic - Quiz 2 Part D (Agenda and Reports)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8082" },
+    { "key": "doctorId", "value": "8db447c2-3900-4b93-8578-70e861efc251", "description": "John Mugisha" },
+    { "key": "doctorWithCancelledOnDate", "value": "2380708c-c90c-47bc-98dd-b45e8e8c52f4", "description": "Sarah Keza - has a CANCELLED appointment on 2026-11-15 (seed data), used to prove D1 excludes it" },
+    { "key": "nonexistentId", "value": "00000000-0000-0000-0000-000000000000" },
+    { "key": "agendaDateToday", "value": "2026-10-15", "description": "Today in this project's seed-data timeline - John has a PENDING appointment on this date" },
+    { "key": "agendaDateCancelledOnly", "value": "2026-11-15", "description": "Sarah's only appointment on this date is CANCELLED - D1 should return an empty list" },
+    { "key": "ssNumberWithUpcoming", "value": "2199000000000001", "description": "Alice Uwase - has exactly one upcoming CONFIRMED appointment (2026-10-20)" },
+    { "key": "ssNumberNoUpcoming", "value": "1199800012345678", "description": "Eric Niyonzima - has no appointment today-or-later with status SCHEDULED/CONFIRMED" },
+    { "key": "nonexistentSsNumber", "value": "0000000000000000" },
+    { "key": "searchName", "value": "gis", "description": "PDF's own example - should find Mugisha" }
+  ],
+  "item": [
+    {
+      "name": "D1 - Doctor's agenda for a day",
+      "item": [
+        {
+          "name": "D1 - Nonexistent doctor (expect 404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{nonexistentId}}/agenda?date={{agendaDateToday}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{nonexistentId}}", "agenda"],
+              "query": [{ "key": "date", "value": "{{agendaDateToday}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D1 - Doctor's agenda with a result (expect 200)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorId}}/agenda?date={{agendaDateToday}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorId}}", "agenda"],
+              "query": [{ "key": "date", "value": "{{agendaDateToday}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D1 - CANCELLED appointments excluded (expect 200, empty list)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/{{doctorWithCancelledOnDate}}/agenda?date={{agendaDateCancelledOnly}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "{{doctorWithCancelledOnDate}}", "agenda"],
+              "query": [{ "key": "date", "value": "{{agendaDateCancelledOnly}}" }]
+            },
+            "description": "This doctor's only appointment on this date has status CANCELLED, so the response must be an empty list."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "D2 - Upcoming appointments of a patient",
+      "item": [
+        {
+          "name": "D2 - Nonexistent ssNumber (expect 404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{nonexistentSsNumber}}/upcoming",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{nonexistentSsNumber}}", "upcoming"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D2 - Patient with one upcoming appointment (expect 200)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{ssNumberWithUpcoming}}/upcoming",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{ssNumberWithUpcoming}}", "upcoming"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D2 - Patient with no upcoming appointments (expect 200, empty list)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/patients/{{ssNumberNoUpcoming}}/upcoming",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patients", "{{ssNumberNoUpcoming}}", "upcoming"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "D3 - Search doctors by name",
+      "item": [
+        {
+          "name": "D3 - Search 'gis' finds Mugisha (expect 200)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/search?name={{searchName}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "search"],
+              "query": [{ "key": "name", "value": "{{searchName}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "D3 - No match (expect 200, empty list)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/search?name=zzz",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "search"],
+              "query": [{ "key": "name", "value": "zzz" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "D4 - Clinic dashboard",
+      "item": [
+        {
+          "name": "D4 - Dashboard summary (expect 200)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "summary"]
+            },
+            "description": "Expect a single JSON object with keys in this order: patients, doctors, freeOffices, appointmentsToday, scheduled, prescriptions."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
