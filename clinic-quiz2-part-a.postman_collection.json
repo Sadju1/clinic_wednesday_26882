@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Kigali Clinic - Quiz 2 Part A (Doctors and Offices)",
+    "name": "Kigali Clinic - Quiz 2 Parts A & B",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,7 +13,18 @@
     { "key": "freeOfficeNumber", "value": "104", "description": "Unoccupied office per the Quiz 2 Step 0 seed data (PDF's own A4 example uses officeNumber=104); check GET /api/offices/free first and update if already taken" },
     { "key": "occupiedOfficeNumber", "value": "103", "description": "Patrick Habimana's office" },
     { "key": "currentOfficeNumber", "value": "101", "description": "Sarah Keza's current office" },
-    { "key": "nonexistentOfficeNumber", "value": "999" }
+    { "key": "nonexistentOfficeNumber", "value": "999" },
+    { "key": "patientId", "value": "d880ec84-bd2f-4682-836b-a47b99d25cf5", "description": "Eric Niyonzima - used as the patient for new test appointments" },
+    { "key": "bookingDoctorId", "value": "f78c2cd1-27c7-455c-babb-1f5545cceb9d", "description": "Patrick Habimana - used for B1 booking tests" },
+    { "key": "bookingDoctorBookedDate", "value": "2026-11-02", "description": "Date Patrick already has a non-cancelled appointment on (seed data) - used to prove double-booking is still blocked" },
+    { "key": "pastDate", "value": "2026-10-01", "description": "A date before 'today' for 400 tests - adjust if the current date changes" },
+    { "key": "freeBookingDate", "value": "2026-10-25", "description": "A free future date for bookingDoctorId - check GET /api/appointments/all first and change if already taken" },
+    { "key": "appointmentId", "value": "REPLACE_WITH_A_LIVE_SCHEDULED_APPOINTMENT_ID", "description": "An appointment currently in SCHEDULED status, not terminal. B2/B3 requests mutate its status, so create a fresh one with 'B1 - Book a future appointment' then copy its id from GET /api/appointments/all (the save endpoint only returns a message, not the entity)." },
+    { "key": "confirmedAppointmentId", "value": "REPLACE_WITH_A_LIVE_CONFIRMED_APPOINTMENT_ID", "description": "An appointment currently in CONFIRMED status (e.g. promote appointmentId to CONFIRMED first via B2, then copy its id here)" },
+    { "key": "completedAppointmentId", "value": "c1efa417-e22a-430a-b6f3-bf9223fe1af8", "description": "A seed appointment already COMPLETED - used for B3's terminal-status 400 case (read-only, never mutated)" },
+    { "key": "cancelledAppointmentId", "value": "cdbe6a2d-b40d-4a5e-8fbf-f2afed7fa6be", "description": "A seed appointment already CANCELLED - used for B3's terminal-status 400 case (read-only, never mutated)" },
+    { "key": "newDateFree", "value": "2026-10-30", "description": "A free future date to reschedule appointmentId to" },
+    { "key": "newDateBooked", "value": "2026-10-20", "description": "A date Sarah Keza already has a non-cancelled appointment on (seed data) - used to prove reschedule respects doctor conflicts" }
   ],
   "item": [
     {
@@ -265,6 +276,253 @@
               "path": ["api", "doctors", "{{doctorWithOfficeId}}", "office"],
               "query": [{ "key": "officeNumber", "value": "{{currentOfficeNumber}}" }]
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "B1 - Safe booking",
+      "item": [
+        {
+          "name": "B1 - Reject a past date (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDate\": \"{{pastDate}}\",\n  \"reason\": \"Quiz2 B1 past date test\",\n  \"status\": \"COMPLETED\",\n  \"patient\": { \"id\": \"{{patientId}}\" },\n  \"doctor\": { \"id\": \"{{bookingDoctorId}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "save"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B1 - Book a future appointment, status forced to SCHEDULED (expect 200)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDate\": \"{{freeBookingDate}}\",\n  \"reason\": \"Quiz2 B1 new booking\",\n  \"status\": \"CONFIRMED\",\n  \"patient\": { \"id\": \"{{patientId}}\" },\n  \"doctor\": { \"id\": \"{{bookingDoctorId}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "save"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B1 - List all appointments (find the id of the one just created)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "all"]
+            },
+            "description": "The save endpoint only returns a message string, not the saved entity. Use this to find the new appointment's id (reason = 'Quiz2 B1 new booking') and its status - confirm it is SCHEDULED even though the request body said CONFIRMED. Copy the id into the appointmentId variable for the B2/B3 requests."
+          },
+          "response": []
+        },
+        {
+          "name": "B1 - Reject double booking on an already-booked date (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDate\": \"{{bookingDoctorBookedDate}}\",\n  \"reason\": \"Quiz2 B1 conflict test\",\n  \"status\": \"SCHEDULED\",\n  \"patient\": { \"id\": \"{{patientId}}\" },\n  \"doctor\": { \"id\": \"{{bookingDoctorId}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "save"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "B2 - Status flow",
+      "item": [
+        {
+          "name": "B2 - Nonexistent appointment (expect 404)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{nonexistentId}}/status?status=CONFIRMED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{nonexistentId}}", "status"],
+              "query": [{ "key": "status", "value": "CONFIRMED" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B2 - Invalid transition SCHEDULED to COMPLETED (expect 400)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentId}}/status?status=COMPLETED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentId}}", "status"],
+              "query": [{ "key": "status", "value": "COMPLETED" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B2 - Valid transition SCHEDULED to CONFIRMED (expect 200)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentId}}/status?status=CONFIRMED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentId}}", "status"],
+              "query": [{ "key": "status", "value": "CONFIRMED" }]
+            },
+            "description": "After this succeeds, appointmentId is now CONFIRMED. Copy its id into confirmedAppointmentId if you want a dedicated CONFIRMED fixture, or keep using appointmentId directly for the next step."
+          },
+          "response": []
+        },
+        {
+          "name": "B2 - Valid transition CONFIRMED to COMPLETED (expect 200)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{confirmedAppointmentId}}/status?status=COMPLETED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{confirmedAppointmentId}}", "status"],
+              "query": [{ "key": "status", "value": "COMPLETED" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B2 - Invalid transition from terminal COMPLETED (expect 400, PDF example message)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{completedAppointmentId}}/status?status=SCHEDULED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{completedAppointmentId}}", "status"],
+              "query": [{ "key": "status", "value": "SCHEDULED" }]
+            },
+            "description": "Expect exactly: Cannot change status from COMPLETED to SCHEDULED"
+          },
+          "response": []
+        },
+        {
+          "name": "B2 - Verify general PUT update no longer changes status",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDate\": \"{{freeBookingDate}}\",\n  \"reason\": \"Quiz2 B2 PUT should not change status\",\n  \"status\": \"CANCELLED\",\n  \"patient\": { \"id\": \"{{patientId}}\" },\n  \"doctor\": { \"id\": \"{{bookingDoctorId}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentId}}"]
+            },
+            "description": "Expect 200 'Appointment updated successfully', but GET the appointment afterward and confirm its status did NOT change to CANCELLED - only /status can change status now."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "B3 - Reschedule an appointment",
+      "item": [
+        {
+          "name": "B3 - Nonexistent appointment (expect 404)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{nonexistentId}}/reschedule?newDate={{newDateFree}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{nonexistentId}}", "reschedule"],
+              "query": [{ "key": "newDate", "value": "{{newDateFree}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "B3 - Cannot reschedule a COMPLETED appointment (expect 400)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{completedAppointmentId}}/reschedule?newDate={{newDateFree}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{completedAppointmentId}}", "reschedule"],
+              "query": [{ "key": "newDate", "value": "{{newDateFree}}" }]
+            },
+            "description": "Expect exactly: A COMPLETED appointment cannot be rescheduled"
+          },
+          "response": []
+        },
+        {
+          "name": "B3 - Cannot reschedule a CANCELLED appointment (expect 400)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{cancelledAppointmentId}}/reschedule?newDate={{newDateFree}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{cancelledAppointmentId}}", "reschedule"],
+              "query": [{ "key": "newDate", "value": "{{newDateFree}}" }]
+            },
+            "description": "Expect exactly: A CANCELLED appointment cannot be rescheduled"
+          },
+          "response": []
+        },
+        {
+          "name": "B3 - Reject a past newDate (expect 400)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentId}}/reschedule?newDate={{pastDate}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentId}}", "reschedule"],
+              "query": [{ "key": "newDate", "value": "{{pastDate}}" }]
+            },
+            "description": "appointmentId must currently be SCHEDULED or CONFIRMED (not terminal) for this to reach the date check."
+          },
+          "response": []
+        },
+        {
+          "name": "B3 - Reject doctor already booked on newDate (expect 409)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentId}}/reschedule?newDate={{newDateBooked}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentId}}", "reschedule"],
+              "query": [{ "key": "newDate", "value": "{{newDateBooked}}" }]
+            },
+            "description": "Only valid if appointmentId's doctor is Sarah Keza (doctorWithOfficeId) - she already has a non-cancelled appointment on newDateBooked. Adjust bookingDoctorId/newDateBooked to match a real conflict in your data otherwise."
+          },
+          "response": []
+        },
+        {
+          "name": "B3 - Successful reschedule (expect 200, status resets to SCHEDULED)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/{{appointmentId}}/reschedule?newDate={{newDateFree}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "appointments", "{{appointmentId}}", "reschedule"],
+              "query": [{ "key": "newDate", "value": "{{newDateFree}}" }]
+            },
+            "description": "After success, GET the appointment and confirm appointmentDate = newDateFree and status = SCHEDULED (even if it was CONFIRMED before)."
           },
           "response": []
         }
